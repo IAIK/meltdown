@@ -21,7 +21,7 @@ If this demo does not work for you, the remaining demos won't most likely not wo
 
 #### Build and Run
 
-```
+```bash
 make
 taskset 0x1 ./test
 ```
@@ -42,7 +42,7 @@ This demo uses Meltdown to leak the (secret) randomization of the direct physica
 
 #### Build and Run
 
-```
+```bash
 make
 sudo taskset 0x1 ./kaslr
 ```
