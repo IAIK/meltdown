@@ -27,8 +27,7 @@ int main(int argc, char *argv[]) {
   size_t bytesize = size * 1024ull * 1024ull * 1024ull;
   char *memory = malloc(bytesize);
   if (!memory) {
-    printf("\x1b[31;1m[!]\x1b[0m Could not allocate %zd GB memory, try less!\n",
-           size);
+    printf("\x1b[31;1m[!]\x1b[0m Could not allocate %zd GB memory, try less!\n", size);
     return 1;
   }
 
@@ -49,8 +48,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  printf("\x1b[32;1m[+]\x1b[0m Press any key if you are done reading the "
-         "secret\n");
+  printf("\x1b[32;1m[+]\x1b[0m Press any key if you are done reading the secret\n");
   getchar();
   printf("\x1b[32;1m[+]\x1b[0m Done!\n");
 

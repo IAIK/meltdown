@@ -28,17 +28,13 @@ int main(int argc, char *argv[]) {
 
   size_t paddr = libkdump_virt_to_phys((size_t)secret);
   if (!paddr) {
-    printf("\x1b[31;1m[!]\x1b[0m Program requires root privileges (or read "
-           "access to /proc/<pid>/pagemap)!\n");
+    printf("\x1b[31;1m[!]\x1b[0m Program requires root privileges (or read access to /proc/<pid>/pagemap)!\n");
     libkdump_cleanup();
     exit(1);
   }
 
-  printf("\x1b[32;1m[+]\x1b[0m Physical address of secret: "
-         "\x1b[32;1m0x%zx\x1b[0m\n",
-         paddr);
-  printf("\x1b[32;1m[+]\x1b[0m Exit with \x1b[37;1mCtrl+C\x1b[0m if you are "
-         "done reading the secret\n");
+  printf("\x1b[32;1m[+]\x1b[0m Physical address of secret: \x1b[32;1m0x%zx\x1b[0m\n", paddr);
+  printf("\x1b[32;1m[+]\x1b[0m Exit with \x1b[37;1mCtrl+C\x1b[0m if you are done reading the secret\n");
   while (1) {
     // keep string cached for better results
     volatile size_t dummy = 0, i;

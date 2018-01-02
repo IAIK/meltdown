@@ -24,11 +24,8 @@ int main(int argc, char *argv[]) {
   size_t vaddr = libkdump_phys_to_virt(phys);
 
   printf(
-      "\x1b[32;1m[+]\x1b[0m Physical address       : \x1b[33;1m0x%zx\x1b[0m\n",
-      phys);
-  printf("\x1b[32;1m[+]\x1b[0m Physical offset        : "
-         "\x1b[33;1m0x%zx\x1b[0m\n\n",
-         config.physical_offset);
+      "\x1b[32;1m[+]\x1b[0m Physical address       : \x1b[33;1m0x%zx\x1b[0m\n", phys);
+  printf("\x1b[32;1m[+]\x1b[0m Physical offset        : \x1b[33;1m0x%zx\x1b[0m\n\n", config.physical_offset);
 
   size_t delta = 0;
   int i;

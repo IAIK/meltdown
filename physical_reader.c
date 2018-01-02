@@ -21,15 +21,9 @@ int main(int argc, char *argv[]) {
 
   size_t vaddr = libkdump_phys_to_virt(phys);
 
-  printf(
-      "\x1b[32;1m[+]\x1b[0m Physical address       : \x1b[33;1m0x%zx\x1b[0m\n",
-      phys);
-  printf(
-      "\x1b[32;1m[+]\x1b[0m Physical offset        : \x1b[33;1m0x%zx\x1b[0m\n",
-      config.physical_offset);
-  printf("\x1b[32;1m[+]\x1b[0m Reading virtual address: "
-         "\x1b[33;1m0x%zx\x1b[0m\n\n",
-         vaddr);
+  printf("\x1b[32;1m[+]\x1b[0m Physical address       : \x1b[33;1m0x%zx\x1b[0m\n", phys);
+  printf("\x1b[32;1m[+]\x1b[0m Physical offset        : \x1b[33;1m0x%zx\x1b[0m\n", config.physical_offset);
+  printf("\x1b[32;1m[+]\x1b[0m Reading virtual address: \x1b[33;1m0x%zx\x1b[0m\n\n", vaddr);
 
   while (1) {
     int value = libkdump_read(vaddr);

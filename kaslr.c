@@ -23,8 +23,7 @@ int main(int argc, char *argv[]) {
 
   size_t start = libkdump_virt_to_phys(var);
   if (!start) {
-    printf("\x1b[31;1m[!]\x1b[0m Program requires root privileges (or read "
-           "access to /proc/<pid>/pagemap)!\n");
+    printf("\x1b[31;1m[!]\x1b[0m Program requires root privileges (or read access to /proc/<pid>/pagemap)!\n");
     exit(1);
   }
 
@@ -37,9 +36,7 @@ int main(int argc, char *argv[]) {
 
     int res = libkdump_read(start + offset + delta);
     if (res == 'X') {
-      printf("\r\x1b[32;1m[+]\x1b[0m Direct physical map offset: "
-             "\x1b[33;1m0x%zx\x1b[0m\n",
-             offset + delta);
+      printf("\r\x1b[32;1m[+]\x1b[0m Direct physical map offset: \x1b[33;1m0x%zx\x1b[0m\n", offset + delta);
       fflush(stdout);
       break;
     } else {
@@ -48,8 +45,7 @@ int main(int argc, char *argv[]) {
         delta = 0;
         step >>= 4;
       }
-      printf("\r\x1b[34;1m[%c]\x1b[0m 0x%zx    ",
-             "/-\\|"[(progress++ / 400) % 4], offset + delta);
+      printf("\r\x1b[34;1m[%c]\x1b[0m 0x%zx    ", "/-\\|"[(progress++ / 400) % 4], offset + delta);
     }
   }
 
