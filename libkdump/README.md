@@ -139,8 +139,47 @@ In some cases, the auto configuration of libkdump might not be sufficient (e.g.,
 
 Most options of libkdump can be changed at runtime. All these options are configurable via the `libkdump_config_t` struct that is passed to the `libkdump_init` function. 
 
-The recommended way TODO
+The recommended way to change any option is to first get the libkdump auto configuration, and then overwrite specific options.
+
+##### Example
+
+```
+// custom config for libkdump
+libkdump_config_t config;
+// get auto config from libkdump
+config = libkdump_get_autoconfig();
+// change any property, e.g., direct-physical map offset
+config.physical_offset = 0xffff98a000000000ull;
+// initialize libkdump with custom config
+if(libkdump_init(libkdump_auto_config) != 0) {
+	return -1;
+}
+```
+
+##### Options
+
+The following options can be configured:
+
+*  `cache_miss_threshold`: Cache miss threshold in cycles for Flush+Reload. If a memory access is faster than this, it is considered a cache hit, if it is slower, it is considered a cache miss (i.e., a memory access) (default: auto detected).
+*  `fault_handling`: How exceptions are handled. Either via fault handling with signal handlers (`SIGNAL_HANDLER`) or via fault suppression using Intel TSX (`TSX`). Note that TSX can only be used if it is supported (default: TSX if available).
+*  `measurements`: The number of measurements to perform for one address. Majority vote is used to determine the most likely value afterwards (default: 3). 
+*  `accept_after`: How many measurements must read the same character, even if this character won the majority vote (default: 1).
+*  `load_threads`: Number of threads which are started to increase the chance of reading from inaccessible addresses (default: 1)
+*  `load_type`: The function which is executed by the load threads. One of `NOP` (just an endless loop), `YIELD` (continuously switch between user space and kernel space), or `IO`(continuously issue interrupts by syncing the file system) (default: NOP). 
+*  `retries`: Number of Meltdown retries for an address, i.e., how often Meltdown should retry when reading a zero (default: 10000). 
+* `physical_offset`: The virtual address of the direct-physical map. If KASLR is not enabled, this is 0xffff880000000000, otherwise it has to be adapted as this cannot be automatically detected (default: 0xffff880000000000).
+
+
 
 #### Compile-time configuration
+
+libkdump has some options which cannot be configured at runtime, but have to be configured at compile time. This is done using macros when compiling libkdump (e.g., by adding them in the Makefile). 
+
+##### Options
+
+* `NO_TSX`: Do not compile TSX support (e.g., if the compiler does not support the TSX instructions).
+* `FORCE_TSX`: If the auto detection does not work, but the target system has TSX, this compile-time option enforces TSX. However, if TSX is not available, the program will crash. 
+* `USE_RDTSCP`: Use `rdtscp` instead of `rdtsc` to measure time. Might be necessary on virtual machines, if `rdtsc` is emulated. However, if `rdtscp` is not available, the program will crash. 
+* `MELTDOWN`: The variant of Meltdown to use. One of `meltdown_nonull` (default, as described in the paper), `meltdown` (with an additional NULL pointer access, increases the success probability on some newer CPUs), or `meltdown_fast` (without retry logic, might work better on slower CPUs). 
 
 
