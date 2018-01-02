@@ -61,7 +61,7 @@ In principal, this program can read arbitrary physical addresses. However, as th
 #### Build and Run
 
 For the demo, first run `secret` (as root) to get the physical address of a human-readable string:
-```
+```bash
 make
 sudo ./secret
 ```
@@ -74,7 +74,7 @@ It should output something like this:
 ```
 
 Let the `secret` program running, and start `physical_reader`. The first parameter is the phyiscal address printed by `secret`. If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
-```
+```bash
 taskset 0x1 ./physical_reader 0x390fff400
 ```
 
@@ -97,7 +97,7 @@ Again, as the physical memory contains a lot of non-human-readable content, we p
 #### Build and Run
 
 For the demo, first run `memory_filler` to fill the memory with human-readable strings. The first argument is the amount of memory (in gigabytes) to fill. 
-```
+```bash
 make
 ./memory_filler 9
 ```
@@ -107,7 +107,7 @@ If you have Firefox or Chrome with multiple tabs running, you might also see par
 
 The first parameter is the phyiscal address at which the dump should begin (leave empty to start at the first gigabyte). If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
 
-```
+```bash
 taskset 0x1 ./memdump 0x240000000  # start at 9 GB
 ```
 

@@ -15,7 +15,7 @@ libkdump was tested on Ubuntu 16.04.3, both with an Intel Core i7-6700K and an I
 
 The library is shipped with a Makefile and can be compiled by running:
 
-```
+```bash
 make
 ```
 
@@ -28,11 +28,11 @@ libkdump does not have any dependencies.
 ## Install
 
 libkdump can be installed system by running
-```
+```bash
 sudo make install
 ```
 and uninstalled by running
-```
+```bash
 sudo make uninstall
 ```
 
@@ -67,11 +67,11 @@ int main() {
 ```
 
 Compile and link with libkdump (static)
-```
+```bash
 gcc example.c -L. -static -lkdump -pthread
 ```
 or as shared library
-```
+```bash
 gcc example.c -lkdump
 ```
 
