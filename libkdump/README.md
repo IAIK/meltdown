@@ -47,7 +47,7 @@ To use libkdump, include the `libkdump.h` header and initialize libkdump using `
 
 #### Example 
 
-```
+```c
 #include "libkdump.h"
 
 int main() {
@@ -81,7 +81,7 @@ libkdump provides `libkdump_read` as a simple function to read the content of an
 
 #### Example
 
-```
+```c
 size_t addr = 0xfffffffc00022a0ull;
 // read the (kernel) address
 int value = libkdump_read(addr);
@@ -97,7 +97,7 @@ If KASLR is disabled (e.g., due to an older kernel version, or the `nokaslr` ker
 If KASLR is enabled, you have to provide the randomized offset of the direct physical map to libkdump in the initialization (see Example (KASLR)). As the offset does only change with a reboot, it is sufficient to brute-force the offset once (see the kaslr demo or the paper). This takes usually only a few seconds. 
 
 #### Example (no KASLR)
-```
+```c
 // read memory at physical offset 1GB
 size_t phys_addr = 1024 * 1024 * 1024; // 1GB
 // convert to virtual address
@@ -109,7 +109,7 @@ printf("%c\n", value);
 ```
 
 #### Example (KASLR)
-```
+```c
 // custom config for libkdump
 libkdump_config_t config;
 // set sane defaults
@@ -143,7 +143,7 @@ The recommended way to change any option is to first get the libkdump auto confi
 
 ##### Example
 
-```
+```c
 // custom config for libkdump
 libkdump_config_t config;
 // get auto config from libkdump
