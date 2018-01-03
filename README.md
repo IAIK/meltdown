@@ -6,6 +6,14 @@ This repository contains several applications, demonstrating the [Meltdown bug](
 
 The applications in this repository are built with [libkdump](https://github.com/IAIK/Meltdown/tree/master/libkdump), a library we developed for the paper. This library simplifies exploitation of the bug by automatically adapting to certain properties of the environment. 
 
+## Videos
+
+This repository contains two videos demonstrating Meltdown
+
+ * The [first video (spy)](https://github.com/IAIK/Meltdown/tree/master/videos/spy.mp4) shows how Meltdown can be used to spy in realtime on a password input. 
+  * The [second video (memdump)](https://github.com/IAIK/Meltdown/tree/master/videos/memdump.mp4) shows how Meltdown leaks physical memory content. 
+ 
+
 ## Demos
 
 This repository contains four demos to demonstrate different use cases. All demos are tested on Ubuntu 16.04 with an Intel Core i7-6700K, but they should work on any Linux system with any modern Intel CPU since 2010. 
