@@ -163,13 +163,15 @@ static void *yieldthread(void *dummy) {
 // ---------------------------------------------------------------------------
 static __attribute__((always_inline)) inline unsigned int xbegin(void) {
   unsigned status;
-  asm volatile("xbegin 1f \n 1:" : "=a"(status) : "a"(-1UL) : "memory");
+  //asm volatile("xbegin 1f \n 1:" : "=a"(status) : "a"(-1UL) : "memory");
+  asm volatile(".byte 0xc7,0xf8,0x00,0x00,0x00,0x00" : "=a"(status) : "a"(-1UL) : "memory");
   return status;
 }
 
 // ---------------------------------------------------------------------------
 static __attribute__((always_inline)) inline void xend(void) {
-  asm volatile("xend");
+  //asm volatile("xend" ::: "memory");
+  asm volatile(".byte 0x0f; .byte 0x01; .byte 0xd5" ::: "memory");
 }
 #endif
 
