@@ -16,7 +16,7 @@ This repository contains two videos demonstrating Meltdown
 
 ## Demos
 
-This repository contains four demos to demonstrate different use cases. All demos are tested on Ubuntu 16.04 with an Intel Core i7-6700K, but they should work on any Linux system with any modern Intel CPU since 2010. 
+This repository contains five demos to demonstrate different use cases. All demos are tested on Ubuntu 16.04 with an Intel Core i7-6700K, but they should work on any Linux system with any modern Intel CPU since 2010. 
 
 For best results, we recommend a fast CPU that supports Intel TSX (e.g. any Intel Core i7-5xxx, i7-6xxx, or i7-7xxx). 
 Furthermore, every demo should be pinned to one CPU core, e.g. with taskset.
@@ -60,7 +60,24 @@ After a few seconds, you should see something similar to this
 [+] Direct physical map offset: 0xffff880000000000
 ```
 
-### Demo #3: Read physical memory (`physical_reader`)
+### Demo #3: Reliability test (`reliability`)
+
+This demo tests how reliable physical memory can be read. For this demo, you either need the direct physical map offset (e.g. from demo #2) or you have to disable KASLR by specifying `nokaslr` in your kernel command line. 
+
+#### Build and Run
+
+Build and start `reliability`. If you do not have KASLR disabled, the first parameter is the offset of the direct physical map. Otherwise, the program does not require a parameter. 
+```bash
+make
+sudo taskset 0x1 ./reliability
+```
+
+After a few seconds, you should get an output similar to this:
+```
+[-] Success rate: 99.93% (read 1354 values)
+```
+
+### Demo #4: Read physical memory (`physical_reader`)
 
 This demo reads memory from a different process by directly reading physical memory. For this demo, you either need the direct physical map offset (e.g. from demo #2) or you have to disable KASLR by specifying `nokaslr` in your kernel command line. 
 
@@ -96,9 +113,9 @@ If you can read this, this is really bad
 ```
 
 
-### Demo #4: Dump the memory (`memdump`)
+### Demo #5: Dump the memory (`memdump`)
 
-This demo dumps the content of the memory. As demo #3, it uses the direct physical map, to dump the contents of the physical memory in a hexdump-like format. 
+This demo dumps the content of the memory. As demo #3 and #4, it uses the direct physical map, to dump the contents of the physical memory in a hexdump-like format. 
 
 Again, as the physical memory contains a lot of non-human-readable content, we provide a test tool to fill large amounts of the physical memory with human-readable strings. 
 
