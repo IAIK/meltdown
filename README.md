@@ -163,3 +163,5 @@ You should get a hexdump of parts of the memory (potentially even containing sec
 **Warning #1**: We are providing this code as-is. You are responsible for protecting yourself, your property and data, and others from any risks caused by this code. This code may cause unexpected and undesirable behavior to occur on your machine. This code may not detect the vulnerability on your machine.
 
 **Warning #2**: If you find that a computer is susceptible to the Meltdown bug, you may want to avoid using it as a multi-user system. Meltdown breaches the CPU's memory protection. On a machine that is susceptible to the Meltdown bug, one process can read all pages used by other processes or by the kernel.
+
+**Warning #3**: This code is only for testing purposes. Do not run it on any productive systems. Do not run it on any system that might be used by another person or entity.
