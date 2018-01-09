@@ -25,7 +25,7 @@ Furthermore, every demo should be pinned to one CPU core, e.g. with taskset.
 
 This is the most basic demo. It uses Meltdown to read accessible addresses from the own address space, not breaking any isolation mechanisms. 
 
-If this demo does not work for you, the remaining demos won't most likely not work either. The reasons are manifold, e.g., the CPU could be too slow, not support out-of-order execution, the high-resolution timer is not precise enough (especially in VMs), the operating system does not support custom signal handlers, etc.
+If this demo does not work for you, the remaining demos most likely won't work either. The reasons are manifold, e.g., the CPU could be too slow, not support out-of-order execution, the high-resolution timer is not precise enough (especially in VMs), the operating system does not support custom signal handlers, etc.
 
 #### Build and Run
 
@@ -66,7 +66,7 @@ This demo tests how reliable physical memory can be read. For this demo, you eit
 
 #### Build and Run
 
-Build and start `reliability`. If you do not have KASLR disabled, the first parameter is the offset of the direct physical map. Otherwise, the program does not require a parameter. 
+Build and start `reliability`. If you have KASLR enabled, the first parameter is the offset of the direct physical map. Otherwise, the program does not require a parameter. 
 ```bash
 make
 sudo taskset 0x1 ./reliability
