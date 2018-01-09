@@ -10,8 +10,8 @@ The applications in this repository are built with [libkdump](https://github.com
 
 This repository contains two videos demonstrating Meltdown
 
- * The [first video (spy)](https://github.com/IAIK/Meltdown/tree/master/videos/spy.mp4) shows how Meltdown can be used to spy in realtime on a password input. 
- * The [second video (memdump)](https://github.com/IAIK/Meltdown/tree/master/videos/memdump.mp4) shows how Meltdown leaks physical memory content. 
+ * The [first video (spy)](https://cdn.rawgit.com/IAIK/meltdown/0bc37b5d/videos/spy.mp4) shows how Meltdown can be used to spy in realtime on a password input. 
+ * The [second video (memdump)](https://cdn.rawgit.com/IAIK/meltdown/e5793de9/videos/memdump.mp4) shows how Meltdown leaks physical memory content. 
  
 
 ## Demos
