@@ -25,7 +25,7 @@ Furthermore, every demo should be pinned to one CPU core, e.g. with taskset.
 
 This is the most basic demo. It uses Meltdown to read accessible addresses from the own address space, not breaking any isolation mechanisms. 
 
-If this demo does not work for you, the remaining demos won't most likely not work either. The reasons are manifold, e.g., the CPU could be too slow, not support out-of-order execution, the high-resolution timer is not precicse enough (especially in VMs), the operating system does not support custom signal handlers, etc.
+If this demo does not work for you, the remaining demos won't most likely not work either. The reasons are manifold, e.g., the CPU could be too slow, not support out-of-order execution, the high-resolution timer is not precise enough (especially in VMs), the operating system does not support custom signal handlers, etc.
 
 #### Build and Run
 
@@ -44,7 +44,7 @@ then the basic demo works.
 
 ### Demo #2: Breaking KASLR (`kaslr`)
 
-Starting with Linux kernel 4.12, KASLR (Kernel Address Space Layout Randomizaton) is active by default.  This means, that the location of the kernel (and also the direct phyiscal map which maps the entire physical memory) changes with each reboot. 
+Starting with Linux kernel 4.12, KASLR (Kernel Address Space Layout Randomizaton) is active by default.  This means, that the location of the kernel (and also the direct physical map which maps the entire physical memory) changes with each reboot.
 
 This demo uses Meltdown to leak the (secret) randomization of the direct physical map. This demo requires root privileges to speed up the process. The paper describes a variant which does not require root privileges. 
 
@@ -98,7 +98,7 @@ It should output something like this:
 [+] Exit with Ctrl+C if you are done reading the secret
 ```
 
-Let the `secret` program running, and start `physical_reader`. The first parameter is the phyiscal address printed by `secret`. If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
+Let the `secret` program running, and start `physical_reader`. The first parameter is the physical address printed by `secret`. If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
 ```bash
 taskset 0x1 ./physical_reader 0x390fff400
 ```
@@ -130,7 +130,7 @@ make
 Then, run the `memdump` tool to dump memory contents. If you executed `memory_filler` before, you should see some string fragments. 
 If you have Firefox or Chrome with multiple tabs running, you might also see parts of the websites which are open or were recently closed. 
 
-The first parameter is the phyiscal address at which the dump should begin (leave empty to start at the first gigabyte). If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
+The first parameter is the physical address at which the dump should begin (leave empty to start at the first gigabyte). If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
 
 ```bash
 taskset 0x1 ./memdump 0x240000000  # start at 9 GB
