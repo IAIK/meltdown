@@ -69,7 +69,7 @@ This demo tests how reliable physical memory can be read. For this demo, you eit
 Build and start `reliability`. If you have KASLR enabled, the first parameter is the offset of the direct physical map. Otherwise, the program does not require a parameter. 
 ```bash
 make
-sudo taskset 0x1 ./reliability
+sudo taskset 0x1 ./reliability 0xffff880000000000
 ```
 
 After a few seconds, you should get an output similar to this:
@@ -100,7 +100,7 @@ It should output something like this:
 
 Let the `secret` program running, and start `physical_reader`. The first parameter is the physical address printed by `secret`. If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
 ```bash
-taskset 0x1 ./physical_reader 0x390fff400
+taskset 0x1 ./physical_reader 0x390fff400 0xffff880000000000
 ```
 
 After a few seconds, you should get an output similar to this:
@@ -133,7 +133,7 @@ If you have Firefox or Chrome with multiple tabs running, you might also see par
 The first parameter is the physical address at which the dump should begin (leave empty to start at the first gigabyte). If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
 
 ```bash
-taskset 0x1 ./memdump 0x240000000  # start at 9 GB
+taskset 0x1 ./memdump 0x240000000 0xffff880000000000 # start at 9 GB
 ```
 
 You should get a hexdump of parts of the memory (potentially even containing secrets such as passwords, see example in the paper), e.g.:
