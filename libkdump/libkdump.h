@@ -4,6 +4,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#if !(defined(__x86_64__) || defined(__i386__))
+# error x86-64 and i386 are the only supported architectures
+#endif
+
+#ifdef __x86_64__
+#define DEFAULT_PHYSICAL_OFFSET 0xffff880000000000ull
+#else
+#define DEFAULT_PHYSICAL_OFFSET 0xc0000000ull
+#endif
+
 /**
  * libkdump exception handling
  */
