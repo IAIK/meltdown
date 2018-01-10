@@ -24,6 +24,10 @@ static int dbg = 0;
 
 static libkdump_config_t config;
 
+#ifndef ETIME
+#define ETIME 62
+#endif
+
 #if defined(NO_TSX) && defined(FORCE_TSX)
 #error NO_TSX and FORCE_TSX cannot be used together!
 #endif
