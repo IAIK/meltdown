@@ -88,7 +88,7 @@ int libkdump_cleanup();
 
 
 /**
- * Retrieves the phyiscal address of a virtual address. Requires root (or read permissions for /proc/self/pagemap).
+ * Retrieves the physical address of a virtual address. Requires root (or read permissions for /proc/self/pagemap).
  *
  * @param[in] addr The virtual address to convert
  * 
@@ -98,7 +98,7 @@ size_t libkdump_virt_to_phys(size_t addr);
 
 
 /**
- * Converts a phyiscal address to a virtual address using the physical direct map offset.
+ * Converts a physical address to a virtual address using the physical direct map offset.
  *
  * @param[in] addr The physical address to convert
  * 
@@ -108,7 +108,7 @@ size_t libkdump_phys_to_virt(size_t addr);
 
 
 /**
- * Retrieves the phyiscal address of a virtual address. Requires root (or read permissions for /proc/self/pagemap).
+ * Retrieves the physical address of a virtual address. Requires root (or read permissions for /proc/self/pagemap).
  *
  * @param[in] enable Enable (1) or disable (0) the debug output of libkdump. Default is disabled. 
  */
