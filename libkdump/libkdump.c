@@ -98,7 +98,7 @@ static libkdump_config_t config;
   asm volatile("xorl %%eax, %%eax\n"                                           \
                "1:\n"                                                          \
                "movb (%%ecx), %%al\n"                                          \
-               "shl $12, %%rax\n"                                              \
+               "shl $12, %%eax\n"                                              \
                "jz 1b\n"                                                       \
                "movl (%%ebx,%%eax,1), %%ebx\n"                                 \
                :                                                               \
@@ -109,8 +109,8 @@ static libkdump_config_t config;
 #define meltdown_fast                                                          \
   asm volatile("xorl %%eax, %%eax\n"                                           \
                "movb (%%ecx), %%al\n"                                          \
-               "shl $12, %%rax\n"                                              \
-               "movl (%%rbx,%%rax,1), %%rbx\n"                                 \
+               "shl $12, %%eax\n"                                              \
+               "movl (%%ebx,%%eax,1), %%ebx\n"                                 \
                :                                                               \
                : "c"(phys), "b"(mem)                                           \
                : "eax");
