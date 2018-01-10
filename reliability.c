@@ -6,7 +6,7 @@
 int main(int argc, char *argv[]) {
   size_t scratch[4096];
   libkdump_config_t config;
-  size_t offset = 0xffff880000000000ull;
+  size_t offset = DEFAULT_PHYSICAL_OFFSET;
   int progress = 0;
   unsigned char secret = 'X';
 
