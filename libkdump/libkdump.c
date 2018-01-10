@@ -145,14 +145,16 @@ static void debug(d_sym_t symbol, const char *fmt, ...) {
 
 // ---------------------------------------------------------------------------
 static inline uint64_t rdtsc() {
-  uint64_t a, d;
+  uint64_t a = 0, d = 0;
   asm volatile("mfence");
 #if defined(USE_RDTSCP) && defined(__x86_64__)
   asm volatile("rdtscp" : "=a"(a), "=d"(d) :: "rcx");
 #elif defined(USE_RDTSCP) && defined(__i386__)
-  asm volatile("rdtscp" : "=a"(a), "=d"(d) :: "ecx");
-#else
+  asm volatile("rdtscp" : "=A"(a), :: "ecx");
+#elif defined(__x86_64__)
   asm volatile("rdtsc" : "=a"(a), "=d"(d));
+#elif defined(__i386__)
+  asm volatile("rdtsc" : "=A"(a));
 #endif
   a = (d << 32) | a;
   asm volatile("mfence");
