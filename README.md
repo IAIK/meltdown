@@ -21,6 +21,14 @@ This repository contains five demos to demonstrate different use cases. All demo
 For best results, we recommend a fast CPU that supports Intel TSX (e.g. any Intel Core i7-5xxx, i7-6xxx, or i7-7xxx). 
 Furthermore, every demo should be pinned to one CPU core, e.g. with taskset.
 
+### Build dependency for demos
+As a pre-requisite, you need to install glibc-static on your machine.
+
+For RPM-based systems:
+```
+sudo yum install -y glibc-static
+```
+
 ### Demo #1: A first test (`test`)
 
 This is the most basic demo. It uses Meltdown to read accessible addresses from the own address space, not breaking any isolation mechanisms. 
