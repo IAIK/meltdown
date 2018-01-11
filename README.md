@@ -168,6 +168,34 @@ You should get a hexdump of parts of the memory (potentially even containing sec
  24000431f: | 20 73 70 69 65 64 20 6f 6e 20 61 6e 20 61 70 70 |  spied on an app |
 ```
 
+## Frequently Asked Questions
+
+* **Does it work on Windows / Ubuntu on Windows (WSL) / Mac OS?**
+No. This PoC only works on Linux, as it uses properties specific to the Linux kernel, such as the direct physical map. 
+
+* **Can I run the PoC in a virtual machine?**
+Yes, the PoC also works on virtual machines. However, due to the additional layer introduced by a virtual machine, it might not work as good as on native hardware. 
+
+* **The KASLR program (`kaslr`) does not find the offset!**
+The `kaslr` tool only does very few measurements to be fast. If it does not find the offset, there are two possibilities:
+    - change the number of retries in `kaslr.c`: `config.retries = 1000;`
+    - use the kernel module in `kaslr_offset` to directly read the offset from the kernel. Install the kernel headers for your kernel (```sudo apt-get install linux-headers-`uname -r` ```) and run `sudo ./direct_physical_map.sh`
+
+* **You said it works on uncached memory, but all your demos ensure that the memory is cached!**
+Making it work on uncached memory is trickier, and often requires a bit of tweaking of the parameters. Thus, we ensure that the memory is cached in the PoC to make it easier to reproduce. However, you can simply remove the code that caches the values and replace it by a `clflush` to test the exploit on uncached memory (see Video #5 for an example).
+
+* **It just does not work on my computer, what can I do?**
+There can be a lot of different reasons for that. We collected a few things you can try:
+    - Ensure that your CPU frequency is at the maximum, and frequency scaling is disabled.
+    - If you run it on a mobile device (e.g., a laptop), ensure that it is plugged in to get the best performance.
+    - Try to pin the tools to a specific CPU core (e.g. with taskset). Also try different cores and core combinations.
+    - Vary the load on your computer. On some machines it works better if the load is higher, on others it works better if the load is lower.
+    - Try to disable hyperthreading in the BIOS. On some computers it works a lot better if hyperthreading is disabled.
+    - Use a different variant of Meltdown. This can be changed in `libkdump/libkdump.c` in the line `#define MELTDOWN meltdown_nonull`. Try for example `meltdown` instead of `meltdown_nonull`, which works a lot better on some machines (but not at all on others). 
+    - Try to create many interrupts, e.g. by running the tool `stress` with `stress -i 2` (or other values for the `i` parameter, depending on the number of cores).
+    - Try to restart the demos and also your computer. Especially after a standby, the timing are broken on some computers. 
+    - Play around with the parameters of libkdump, e.g. increase the number of retries and/or measurements. 
+
 
 ## Warnings
 **Warning #1**: We are providing this code as-is. You are responsible for protecting yourself, your property and data, and others from any risks caused by this code. This code may cause unexpected and undesirable behavior to occur on your machine. This code may not detect the vulnerability on your machine.
