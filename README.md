@@ -171,25 +171,20 @@ You should get a hexdump of parts of the memory (potentially even containing sec
 ## Frequently Asked Questions
 
 * **Does it work on Windows / Ubuntu on Windows (WSL) / Mac OS?**
-
 No. This PoC only works on Linux, as it uses properties specific to the Linux kernel, such as the direct physical map. 
 
 * **Can I run the PoC in a virtual machine?**
-
 Yes, the PoC also works on virtual machines. However, due to the additional layer introduced by a virtual machine, it might not work as good as on native hardware. 
 
 * **The KASLR program (`kaslr`) does not find the offset!**
-
 The `kaslr` tool only does very few measurements to be fast. If it does not find the offset, there are two possibilities:
     - change the number of retries in `kaslr.c`: `config.retries = 1000;`
     - use the kernel module in `kaslr_offset` to directly read the offset from the kernel. Install the kernel headers for your kernel (```sudo apt-get install linux-headers-`uname -r` ```) and run `sudo ./direct_physical_map.sh`
 
 * **You said it works on uncached memory, but all your demos ensure that the memory is cached!**
-
 Making it work on uncached memory is trickier, and often requires a bit of tweaking of the parameters. Thus, we ensure that the memory is cached in the PoC to make it easier to reproduce. However, you can simply remove the code that caches the values and replace it by a `clflush` to test the exploit on uncached memory (see Video #5 for an example).
 
 * **It just does not work on my computer, what can I do?**
-
 There can be a lot of different reasons for that. We collected a few things you can try:
     - Ensure that your CPU frequency is at the maximum, and frequency scaling is disabled.
     - If you run it on a mobile device (e.g., a laptop), ensure that it is plugged in to get the best performance.
