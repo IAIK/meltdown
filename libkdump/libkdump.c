@@ -272,12 +272,10 @@ static int check_tsx() {
     return (b & (1 << 11)) ? 1 : 0;
   } else
     return 0;
-#else
-#ifdef FORCE_TSX
+#elif defined(FORCE_TSX)
   return 1;
-#else
+#else /* defined (NO_TSX) */
   return 0;
-#endif
 #endif
 }
 
@@ -542,6 +540,15 @@ int __attribute__((optimize("-O0"))) libkdump_read(size_t addr) {
     res_stat[r]++;
   }
   int max_v = 0, max_i = 0;
+
+  if (dbg) {
+    for (i = 0; i < sizeof(res_stat); i++) {
+      if (res_stat[i] == 0)
+        continue;
+      debug(INFO, "res_stat[%x] = %d\n",
+            i, res_stat[i]);
+    }
+  }
 
   for (i = 1; i < 256; i++) {
     if (res_stat[i] > max_v && res_stat[i] >= config.accept_after) {
