@@ -102,7 +102,7 @@ size_t libkdump_virt_to_phys(size_t addr);
  *
  * @param[in] addr The physical address to convert
  * 
- * @return The virtual address
+ * @return The virtual address, or -1ULL if an error occured.
  */
 size_t libkdump_phys_to_virt(size_t addr);
 
