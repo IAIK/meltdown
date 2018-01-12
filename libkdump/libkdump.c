@@ -451,6 +451,9 @@ int libkdump_cleanup() {
 
 // ---------------------------------------------------------------------------
 size_t libkdump_phys_to_virt(size_t addr) {
+  /* we are given full address here */
+  if (addr + config.physical_offset < config.physical_offset)
+    return addr;
   return addr + config.physical_offset;
 }
 
