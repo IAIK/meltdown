@@ -140,10 +140,10 @@ make
 Then, run the `memdump` tool to dump memory contents. If you executed `memory_filler` before, you should see some string fragments. 
 If you have Firefox or Chrome with multiple tabs running, you might also see parts of the websites which are open or were recently closed. 
 
-The first parameter is the physical address at which the dump should begin (leave empty to start at the first gigabyte). If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
+The first parameter is the physical address at which the dump should begin (leave empty to start at the first gigabyte). The second parameter is the amount of bytes you want to be read, to read it all give -1. If you do not have KASLR disabled,  the third parameter is the offset of the direct physical map.
 
 ```bash
-taskset 0x1 ./memdump 0x240000000 0xffff880000000000 # start at 9 GB
+taskset 0x1 ./memdump 0x240000000 -1 0xffff880000000000 # start at 9 GB
 ```
 
 You should get a hexdump of parts of the memory (potentially even containing secrets such as passwords, see example in the paper), e.g.:
