@@ -14,7 +14,6 @@
 libkdump_config_t libkdump_auto_config = {0};
 
 // ---------------------------------------------------------------------------
-static volatile size_t run = 1;
 static jmp_buf buf;
 
 static char *_mem = NULL, *mem = NULL;
@@ -358,9 +357,8 @@ static void unblock_signal(int signum __attribute__((__unused__))) {
 // ---------------------------------------------------------------------------
 static void segfault_handler(int signum) {
   (void)signum;
-  run = 0;
   unblock_signal(SIGSEGV);
-  longjmp(buf, 0);
+  longjmp(buf, 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -501,9 +499,7 @@ int __attribute__((optimize("-Os"), noinline)) libkdump_read_signal_handler() {
   uint64_t start = 0, end = 0;
 
   while (retries--) {
-    run = 1;
-    setjmp(buf);
-    if (run) {
+    if (!setjmp(buf)) {
       MELTDOWN;
     }
 
