@@ -117,7 +117,7 @@ config = libkdump_get_autoconfig();
 // change address of direct physical map
 config.physical_offset = 0xffff98a000000000ull;
 // initialize libkdump with custom config
-if(libkdump_init(libkdump_auto_config) != 0) {
+if(libkdump_init(config) != 0) {
 	return -1;
 }
 
@@ -151,7 +151,7 @@ config = libkdump_get_autoconfig();
 // change any property, e.g., direct-physical map offset
 config.physical_offset = 0xffff98a000000000ull;
 // initialize libkdump with custom config
-if(libkdump_init(libkdump_auto_config) != 0) {
+if(libkdump_init(config) != 0) {
 	return -1;
 }
 ```
