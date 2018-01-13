@@ -14,7 +14,6 @@
 libkdump_config_t libkdump_auto_config = {0};
 
 // ---------------------------------------------------------------------------
-static volatile size_t run = 1;
 static jmp_buf buf;
 
 static char *_mem = NULL, *mem = NULL;
@@ -273,12 +272,10 @@ static int check_tsx() {
     return (b & (1 << 11)) ? 1 : 0;
   } else
     return 0;
-#else
-#ifdef FORCE_TSX
+#elif defined(FORCE_TSX)
   return 1;
-#else
+#else /* defined (NO_TSX) */
   return 0;
-#endif
 #endif
 }
 
@@ -360,9 +357,8 @@ static void unblock_signal(int signum __attribute__((__unused__))) {
 // ---------------------------------------------------------------------------
 static void segfault_handler(int signum) {
   (void)signum;
-  run = 0;
   unblock_signal(SIGSEGV);
-  longjmp(buf, 0);
+  longjmp(buf, 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -453,6 +449,9 @@ int libkdump_cleanup() {
 
 // ---------------------------------------------------------------------------
 size_t libkdump_phys_to_virt(size_t addr) {
+  /* we are given full address here */
+  if (addr + config.physical_offset < config.physical_offset)
+    return addr;
   return addr + config.physical_offset;
 }
 
@@ -503,9 +502,7 @@ int __attribute__((optimize("-Os"), noinline)) libkdump_read_signal_handler() {
   uint64_t start = 0, end = 0;
 
   while (retries--) {
-    run = 1;
-    setjmp(buf);
-    if (run) {
+    if (!setjmp(buf)) {
       MELTDOWN;
     }
 
@@ -543,6 +540,15 @@ int __attribute__((optimize("-O0"))) libkdump_read(size_t addr) {
     res_stat[r]++;
   }
   int max_v = 0, max_i = 0;
+
+  if (dbg) {
+    for (i = 0; i < sizeof(res_stat); i++) {
+      if (res_stat[i] == 0)
+        continue;
+      debug(INFO, "res_stat[%x] = %d\n",
+            i, res_stat[i]);
+    }
+  }
 
   for (i = 1; i < 256; i++) {
     if (res_stat[i] > max_v && res_stat[i] >= config.accept_after) {

@@ -1,11 +1,22 @@
 #include "libkdump.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
+
+static int running = 1;
+
+void sigint(int signum __attribute__((unused))) {
+  running = 0;
+}
 
 int main(int argc, char *argv[]) {
   size_t phys = 1ull * 1024ull * 1024ull * 1024ull; // start at first gigabyte
+  size_t size = -1ULL;
   if (argc >= 2) {
     phys = strtoull(argv[1], NULL, 0);
+  }
+  if (argc >= 3) {
+    size = strtoull(argv[2], NULL, 0);
   }
 
   int width = 16; // characters per line
@@ -15,8 +26,8 @@ int main(int argc, char *argv[]) {
   config = libkdump_get_autoconfig();
   config.retries = 10;
   config.measurements = 2;
-  if (argc >= 3) {
-    config.physical_offset = strtoull(argv[2], NULL, 0);
+  if (argc >= 4) {
+    config.physical_offset = strtoull(argv[3], NULL, 0);
   }
 
   libkdump_init(config);
@@ -31,7 +42,9 @@ int main(int argc, char *argv[]) {
   int i;
   char *buffer = malloc(width);
 
-  while (1) {
+  signal(SIGINT, sigint);
+
+  while (running && delta < size) {
     int value = libkdump_read(vaddr + delta);
     buffer[delta % width] = value;
 
