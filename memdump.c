@@ -43,7 +43,10 @@ int main(int argc, char *argv[]) {
       "\x1b[32;1m[+]\x1b[0m Physical address       : \x1b[33;1m0x%zx\x1b[0m\n", phys);
   printf("\x1b[32;1m[+]\x1b[0m Physical offset        : \x1b[33;1m0x%zx\x1b[0m\n", config.physical_offset);
   printf(
-      "\x1b[32;1m[+]\x1b[0m Virtual address        : \x1b[33;1m0x%zx\x1b[0m\n\n", vaddr);
+      "\x1b[32;1m[+]\x1b[0m Virtual address       : \x1b[33;1m0x%zx\x1b[0m\n", vaddr);
+
+  if (width > size)
+     width = size;
 
   size_t delta = 0;
   int i;
@@ -68,7 +71,7 @@ int main(int argc, char *argv[]) {
         continue;
       }
 
-      printf("%10zx: ", delta + phys);
+      printf("%10zx: ", delta + phys - (width - 1));
       printf("| ");
       for (i = 0; i < width; i++) {
         printf("%02x ", (unsigned char)buffer[i]);
