@@ -11,7 +11,7 @@ void sigint(int signum __attribute__((unused))) {
 
 int main(int argc, char *argv[]) {
   size_t phys = 1ull * 1024ull * 1024ull * 1024ull; // start at first gigabyte
-  size_t size = -1ULL;
+  size_t size = (size_t)-1ULL;
   if (argc >= 2) {
     phys = strtoull(argv[1], NULL, 0);
   }
@@ -33,6 +33,11 @@ int main(int argc, char *argv[]) {
   libkdump_init(config);
 
   size_t vaddr = libkdump_phys_to_virt(phys);
+
+  if (vaddr == -1ULL) {
+    fprintf(stderr, "Error converting physical to virtual address\n");
+    return -1;
+  }
 
   printf(
       "\x1b[32;1m[+]\x1b[0m Physical address       : \x1b[33;1m0x%zx\x1b[0m\n", phys);
