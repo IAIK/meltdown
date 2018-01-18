@@ -412,8 +412,8 @@ int libkdump_init(const libkdump_config_t configuration) {
       int k;
       for (k = 0; k < j; k++) {
         pthread_cancel(load_thread[k]);
-        free(_mem);
       }
+      free(_mem);
       errno = r;
       return -1;
     }
