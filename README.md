@@ -1,8 +1,8 @@
 # Meltdown Proof-of-Concept
 
-This repository contains several applications, demonstrating the [Meltdown bug](https://meltdown.help). For technical information about the bug, refer to the paper: 
+This repository contains several applications, demonstrating the [Meltdown bug](https://meltdownattack.com). For technical information about the bug, refer to the paper: 
 
-* [Meltdown](https://meltdown.help/meltdown.pdf) by Lipp, Schwarz, Gruss, Prescher, Haas, Mangard, Kocher, Genkin, Yarom, and Hamburg
+* [Meltdown](https://meltdownattack.com/meltdown.pdf) by Lipp, Schwarz, Gruss, Prescher, Haas, Mangard, Kocher, Genkin, Yarom, and Hamburg
 
 The applications in this repository are built with [libkdump](https://github.com/IAIK/Meltdown/tree/master/libkdump), a library we developed for the paper. This library simplifies exploitation of the bug by automatically adapting to certain properties of the environment. 
 
