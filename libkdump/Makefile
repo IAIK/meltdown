@@ -1,4 +1,4 @@
-CFLAGS=-O3 -pthread -Wno-attributes 
+override CFLAGS += -O3 -pthread -Wno-attributes
 CC=gcc
 
 all: libkdump.a libkdump.so

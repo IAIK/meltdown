@@ -1,8 +1,8 @@
 # Meltdown Proof-of-Concept
 
-This repository contains several applications, demonstrating the [Meltdown bug](https://meltdown.help). For technical information about the bug, refer to the paper: 
+This repository contains several applications, demonstrating the [Meltdown bug](https://meltdownattack.com). For technical information about the bug, refer to the paper: 
 
-* [Meltdown](https://meltdown.help/meltdown.pdf) by Lipp, Schwarz, Gruss, Prescher, Haas, Mangard, Kocher, Genkin, Yarom, and Hamburg
+* [Meltdown](https://meltdownattack.com/meltdown.pdf) by Lipp, Schwarz, Gruss, Prescher, Haas, Mangard, Kocher, Genkin, Yarom, and Hamburg
 
 The applications in this repository are built with [libkdump](https://github.com/IAIK/Meltdown/tree/master/libkdump), a library we developed for the paper. This library simplifies exploitation of the bug by automatically adapting to certain properties of the environment. 
 
@@ -140,10 +140,10 @@ make
 Then, run the `memdump` tool to dump memory contents. If you executed `memory_filler` before, you should see some string fragments. 
 If you have Firefox or Chrome with multiple tabs running, you might also see parts of the websites which are open or were recently closed. 
 
-The first parameter is the physical address at which the dump should begin (leave empty to start at the first gigabyte). If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
+The first parameter is the physical address at which the dump should begin (leave empty to start at the first gigabyte). The second parameter is the amount of bytes you want to be read, to read it all give -1. If you do not have KASLR disabled,  the third parameter is the offset of the direct physical map.
 
 ```bash
-taskset 0x1 ./memdump 0x240000000 0xffff880000000000 # start at 9 GB
+taskset 0x1 ./memdump 0x240000000 -1 0xffff880000000000 # start at 9 GB
 ```
 
 You should get a hexdump of parts of the memory (potentially even containing secrets such as passwords, see example in the paper), e.g.:
@@ -188,7 +188,7 @@ You should get a hexdump of parts of the memory (potentially even containing sec
 * **You said it works on uncached memory, but all your demos ensure that the memory is cached!**
 
     Making it work on uncached memory is trickier, and often requires a bit of tweaking of the parameters. Thus, we ensure that the memory is cached in the PoC to make it easier to reproduce. However, you can simply remove the code that caches the values and replace it by a `clflush` to test the exploit on uncached memory (see Video #5 for an example).
-    Although not in the original blog post by Google, this was also confirmed by independent researchers (e.g. https://twitter.com/aionescu/status/951261470343360513 or https://twitter.com/raphael_scarv/status/951265374175154176).
+    Although not in the original blog post by Google, this was also confirmed by independent researchers (e.g. [Alex Ionescu](https://twitter.com/aionescu/status/951261470343360513), [Raphael Carvalho](https://twitter.com/raphael_scarv/status/952078140028964864), [Pavel Boldin](https://www.youtube.com/watch?v=EMBGXswJC4s)).
 
 * **It just does not work on my computer, what can I do?**
 
