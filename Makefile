@@ -1,4 +1,4 @@
-override CFLAGS += -O3 -pthread -Wno-attributes
+override CFLAGS += -O3 -pthread -Wno-attributes -m64
 CC=gcc
 
 #BINARIES=test kaslr physical_reader
@@ -12,7 +12,7 @@ libkdump/libkdump.a:  libkdump/libkdump.c
 	make -C libkdump
 
 %: %.c libkdump/libkdump.a
-	$(CC) $< -o $@ -Llibkdump -Ilibkdump -lkdump -static $(CFLAGS)
+	$(CC) $< -o $@ -m64 -Llibkdump -Ilibkdump -lkdump -static $(CFLAGS)
 	
 	
 clean:
