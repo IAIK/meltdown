@@ -14,7 +14,7 @@ const char *strings[] = {
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    printf("Usage: %s <gigabytes to fill>\n", argv[1]);
+    printf("Usage: %s <gigabytes to fill>\n", argv[0]);
     return 0;
   }
 
