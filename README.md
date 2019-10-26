@@ -108,7 +108,7 @@ It should output something like this:
 [+] Exit with Ctrl+C if you are done reading the secret
 ```
 
-Let the `secret` program running, and start `physical_reader`. The first parameter is the physical address printed by `secret`. If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
+While the `secret` program is running, start `physical_reader`. The first parameter is the physical address printed by `secret`. If you do not have KASLR disabled,  the second parameter is the offset of the direct physical map.
 ```bash
 taskset 0x1 ./physical_reader 0x390fff400 0xffff880000000000
 ```
