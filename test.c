@@ -1,4 +1,5 @@
 #include "libkdump.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +32,8 @@ int main(int argc, char *argv[]) {
   printf("   Got: \x1b[33;1m");
   while (index < strlen(test)) {
     int value = libkdump_read((size_t)(test + index));
+    if (!isprint(value))
+      continue;
     printf("%c", value);
     fflush(stdout);
     index++;
