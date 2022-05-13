@@ -1,4 +1,5 @@
 #include <asm/io.h>
+#include <linux/version.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/proc_fs.h>
@@ -12,6 +13,15 @@ static int show_offset(struct seq_file *m, void *v) {
 static int proc_open(struct inode *inode, struct file *file) {
   return single_open(file, show_offset, NULL);
 }
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+static struct proc_ops fops = {
+	.proc_open = proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
+};
+#else
 static struct file_operations fops = {
     .owner = THIS_MODULE,
     .open = proc_open,
@@ -19,6 +29,7 @@ static struct file_operations fops = {
     .read = seq_read,
     .llseek = seq_lseek,
 };
+#endif
 
 static int __init kaslr_init(void) {
   struct proc_dir_entry *entry;
